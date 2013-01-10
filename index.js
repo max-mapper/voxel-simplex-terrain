@@ -1,11 +1,13 @@
 var SimplexNoise = require('simplex-noise')
+var Alea = require('alea')
 var voxel = require('voxel')
 
 module.exports = function generate(opts) {
   if (!opts) opts = {}
   if (typeof opts === 'string') opts = {seed: opts}
   var seed = opts.seed || Math.random()
-  function seedFunc() { return seed }
+  var alea = new Alea(seed)
+  function seedFunc() { return alea() }
   var simplex = new SimplexNoise(seedFunc)
   var chunkDistance = opts.chunkDistance || 2
   var chunkSize = opts.chunkSize || 32
@@ -23,10 +25,7 @@ module.exports = function generate(opts) {
     var toLow = lowerLeft[0]
     var toHigh = upperRight[0]
     return voxel.generate(l, h, function(x, y, z, n) {
-      x = scale(x, fromLow, fromHigh, toLow, toHigh)
-      z = scale(z, fromLow, fromHigh, toLow, toHigh)
-      y = scale(y, fromLow, fromHigh, toLow, toHigh)
-      return getMaterialIndex(seed, simplex,width,x,y,z)
+      return getMaterialIndex(seed, simplex, width, x, y, z)
     })
   }
 }
