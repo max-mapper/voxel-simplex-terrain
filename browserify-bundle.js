@@ -40479,13 +40479,15 @@ require.define("/package.json",function(require,module,exports,__dirname,__filen
 });
 
 require.define("/index.js",function(require,module,exports,__dirname,__filename,process,global){var SimplexNoise = require('simplex-noise')
+var Alea = require('alea')
 var voxel = require('voxel')
 
 module.exports = function generate(opts) {
   if (!opts) opts = {}
   if (typeof opts === 'string') opts = {seed: opts}
-  var seed = opts.seed || Math.random()
-  function seedFunc() { return seed }
+  var seed = opts.seed || ~~(Math.random()*10000000)
+  var alea = new Alea(seed)
+  function seedFunc() { return alea() }
   var simplex = new SimplexNoise(seedFunc)
   var chunkDistance = opts.chunkDistance || 2
   var chunkSize = opts.chunkSize || 32
@@ -40503,10 +40505,7 @@ module.exports = function generate(opts) {
     var toLow = lowerLeft[0]
     var toHigh = upperRight[0]
     return voxel.generate(l, h, function(x, y, z, n) {
-      x = scale(x, fromLow, fromHigh, toLow, toHigh)
-      z = scale(z, fromLow, fromHigh, toLow, toHigh)
-      y = scale(y, fromLow, fromHigh, toLow, toHigh)
-      return getMaterialIndex(seed, simplex,width,x,y,z)
+      return getMaterialIndex(seed, simplex, width, x, y, z)
     })
   }
 }
@@ -40514,13 +40513,14 @@ module.exports = function generate(opts) {
 function getMaterialIndex(seed, simplex, width, x, y, z) {
   // the contents of this function come from 
   // https://github.com/jwagner/voxelworlds/
+  var intensity = 16
   var xd = x-width*0.25,
       yd = y-width*0.20,
       zd = z-width*0.25;
   if(yd > 0) yd *= yd*0.05;
   var xz = simplex.noise2D(x, z);
-  var distance = (xd*xd+yd*yd*32+zd*zd)*0.0004,
-      density = simplex.noise3D(x/32, y/32, z/32)-distance;
+  var distance = (xd*xd+yd*yd*intensity+zd*zd)*0.0004,
+      density = simplex.noise3D(x/intensity, y/intensity, z/intensity)-distance;
   if(density > -0.75){
       return 3;
   }
@@ -40528,16 +40528,20 @@ function getMaterialIndex(seed, simplex, width, x, y, z) {
       return 2;
   }
   if(density > -1.0){
-      return y > 32+xz*4 ? 1 : 2;
+      return y > intensity+xz*4 ? 1 : 2;
   }
+  
+  // makes spikey things
   if(seed[0] === "6"){
-  var density0 = simplex.noise3D(x/32, 32, z/32);
-      if(density0-xd*xd*0.002-zd*zd*0.002 > -1.0 && y > 32 && y*0.01 < simplex.noise2D(x/4, z/4)*simplex.noise2D(x/32, z/32)){
-      return y > 48+xz*16 ? 5 : 4;
+  var density0 = simplex.noise3D(x/intensity, intensity, z/intensity);
+      if(density0-xd*xd*0.002-zd*zd*0.002 > -1.0 && y > intensity && y*0.01 < simplex.noise2D(x/4, z/4)*simplex.noise2D(x/intensity, z/intensity)){
+      return y > (intensity * 1.5)+xz*(intensity/2) ? 5 : 4;
   }
   }
+
+  // makes rocky outcroppings
   if(seed[0] != '0'){
-      if(density > -0.50-y*0.01+simplex.noise2D(x/4, z/4)*simplex.noise2D(x/32+5, z/32+5)){
+      if(density > -0.50-y*0.01+simplex.noise2D(x/4, z/4)*simplex.noise2D(x/intensity+5, z/intensity+5)){
           return 3;
       }
   }
@@ -40960,6 +40964,121 @@ if (typeof module !== 'undefined') {
 }
 
 })();
+
+});
+
+require.define("/node_modules/alea/package.json",function(require,module,exports,__dirname,__filename,process,global){module.exports = {"main":"alea.js"}
+});
+
+require.define("/node_modules/alea/alea.js",function(require,module,exports,__dirname,__filename,process,global){(function (root, factory) {
+  if (typeof exports === 'object') {
+      module.exports = factory();
+  } else if (typeof define === 'function' && define.amd) {
+      define(factory);
+  } else {
+      root.returnExports = factory();
+  }
+}(this, function () {
+
+  'use strict';
+
+  // From http://baagoe.com/en/RandomMusings/javascript/
+
+  // importState to sync generator states
+  Alea.importState = function(i){
+    var random = new Alea();
+    random.importState(i);
+    return random;
+  };
+
+  return Alea;
+
+  function Alea() {
+    return (function(args) {
+      // Johannes Baagøe <baagoe@baagoe.com>, 2010
+      var s0 = 0;
+      var s1 = 0;
+      var s2 = 0;
+      var c = 1;
+
+      if (args.length == 0) {
+        args = [+new Date];
+      }
+      var mash = Mash();
+      s0 = mash(' ');
+      s1 = mash(' ');
+      s2 = mash(' ');
+
+      for (var i = 0; i < args.length; i++) {
+        s0 -= mash(args[i]);
+        if (s0 < 0) {
+          s0 += 1;
+        }
+        s1 -= mash(args[i]);
+        if (s1 < 0) {
+          s1 += 1;
+        }
+        s2 -= mash(args[i]);
+        if (s2 < 0) {
+          s2 += 1;
+        }
+      }
+      mash = null;
+
+      var random = function() {
+        var t = 2091639 * s0 + c * 2.3283064365386963e-10; // 2^-32
+        s0 = s1;
+        s1 = s2;
+        return s2 = t - (c = t | 0);
+      };
+      random.uint32 = function() {
+        return random() * 0x100000000; // 2^32
+      };
+      random.fract53 = function() {
+        return random() + 
+          (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+      };
+      random.version = 'Alea 0.9';
+      random.args = args;
+
+      // my own additions to sync state between two generators
+      random.exportState = function(){
+        return [s0, s1, s2, c];
+      };
+      random.importState = function(i){
+        s0 = +i[0] || 0;
+        s1 = +i[1] || 0;
+        s2 = +i[2] || 0;
+        c = +i[3] || 0;
+      };
+ 
+      return random;
+
+    } (Array.prototype.slice.call(arguments)));
+  }
+
+  function Mash() {
+    var n = 0xefc8249d;
+
+    var mash = function(data) {
+      data = data.toString();
+      for (var i = 0; i < data.length; i++) {
+        n += data.charCodeAt(i);
+        var h = 0.02519603282416938 * n;
+        n = h >>> 0;
+        h -= n;
+        h *= n;
+        n = h >>> 0;
+        h -= n;
+        n += h * 0x100000000; // 2^32
+      }
+      return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+    };
+
+    mash.version = 'Mash 0.9';
+    return mash;
+  }
+}));
 
 });
 
@@ -41827,22 +41946,21 @@ require.define("/demo.js",function(require,module,exports,__dirname,__filename,p
 var simplex = require('./')
 var url = require('url')
 var chunkSize = 32
-var chunkDistance = 2
+var chunkDistance = 3
 
 var seed
 var parsedURL = url.parse(window.location.href, true)
 if (parsedURL.query) seed = parsedURL.query.seed
-if (seed) seed = +seed
 
 window.generator = simplex({seed: seed, scaleFactor: 10, chunkDistance: chunkDistance})
 window.game = createGame({
   generateVoxelChunk: generator,
   texturePath: './textures/',
-  materials: ['grass', 'obsidian', 'dirt', 'whitewool', 'crate'],
+  materials: ['grass', 'obsidian', 'dirt', 'whitewool', 'crate', 'brick'],
   cubeSize: 25,
   chunkSize: chunkSize,
   chunkDistance: chunkDistance,
-  startingPosition: [0, 2000, 0],
+  startingPosition: [0, 3000, 1000],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
