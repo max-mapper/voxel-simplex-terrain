@@ -1,0 +1,32 @@
+{
+    "name" : "voxel-simplex-terrain",
+    "version" : "0.0.1",
+    "description" : "generate voxel terrain using simplex noise",
+    "main" : "index.js",
+    "dependencies" : {
+      "voxel": "0.0.9",
+      "simplex-noise": "2.1.1"
+    },
+    "devDependencies" : {
+        "browserify" : "~1.17.1",
+        "voxel-engine" : "0.1.9",
+        "three": "0.54.5-dev"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/maxogden/voxel-simplex-terrain.git"
+    },
+    "homepage" : "https://github.com/maxogden/voxel-simplex-terrain",
+    "keywords" : [
+        "voxel",
+        "game",
+        "webgl",
+        "three.js"
+    ],
+    "author" : {
+        "name" : "Max Ogden",
+        "email" : "max@maxogden.com",
+        "url" : "http://maxogden.com"
+    },
+    "license" : "MIT"
+}
