@@ -1,16 +1,16 @@
 {
     "name" : "voxel-simplex-terrain",
-    "version" : "0.0.1",
+    "version" : "0.0.3",
     "description" : "generate voxel terrain using simplex noise",
     "main" : "index.js",
     "dependencies" : {
       "voxel": "0.0.9",
-      "simplex-noise": "2.1.1"
+      "simplex-noise": "2.1.1",
+      "alea": "0.0.8"
     },
     "devDependencies" : {
         "browserify" : "~1.17.1",
-        "voxel-engine" : "0.1.9",
-        "three": "0.54.5-dev"
+        "voxel-engine" : "0.1.9"
     },
     "repository" : {
         "type" : "git",

@@ -2,22 +2,21 @@ var createGame = require('voxel-engine')
 var simplex = require('./')
 var url = require('url')
 var chunkSize = 32
-var chunkDistance = 2
+var chunkDistance = 3
 
 var seed
 var parsedURL = url.parse(window.location.href, true)
 if (parsedURL.query) seed = parsedURL.query.seed
-if (seed) seed = +seed
 
 window.generator = simplex({seed: seed, scaleFactor: 10, chunkDistance: chunkDistance})
 window.game = createGame({
   generateVoxelChunk: generator,
   texturePath: './textures/',
-  materials: ['grass', 'obsidian', 'dirt', 'whitewool', 'crate'],
+  materials: ['grass', 'obsidian', 'dirt', 'whitewool', 'crate', 'brick'],
   cubeSize: 25,
   chunkSize: chunkSize,
   chunkDistance: chunkDistance,
-  startingPosition: [0, 2000, 0],
+  startingPosition: [0, 3000, 1000],
   worldOrigin: [0,0,0],
   controlOptions: {jump: 6}
 })
